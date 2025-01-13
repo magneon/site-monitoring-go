@@ -120,6 +120,23 @@ func exit() {
 }
 
 func startMonitoring() {
+	/*
+		ARRAYS EM GO POSSUEM TAMANHO PRÉ-FIXADO, O QUE TORNA O TRABALHO COM ARRAYS, RUIM
+		var sites [4]string
+		sites[0] = "https://www.google.com.br"
+		sites[1] = "https://www.alura.com.br"
+		sites[2] = "https://httpbin.org/status/200"
+		sites[3] = "https://httpbin.org/status/404"
+	*/
+
+	//NO CASO, A VANTAGEM É UTILIZAR UM SLICE, QUE É MUTÁVEL E PERMITE CRESCER E REDUZIR O TAMANHO DA ESTRUTURA DE DADOS
+	sites := []string{
+		"https://www.google.com.br",
+		"https://www.alura.com.br",
+		"https://httpbin.org/status/200",
+		"https://httpbin.org/status/404",
+	}
+
 	fmt.Println("Iniciando monitoramento do sistema...")
 
 	url := "https://httpbin.org/status/200"

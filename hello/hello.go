@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 )
 
 /*
@@ -23,6 +24,72 @@ var versao = 1.1
 nome := "Rafael"
 idade := 35
 versao := 1.1
+*/
+
+/*
+	NO GO, OS PARÊNTESES DO IF NÃO SÃO NECESSÁRIOS:
+	if (comando == 0) {
+		...
+	}
+
+	COM A INSTRUÇÃO ACIMA, O GO VAI REMOVER OS PARÊNTESES
+	if comando == 0 {
+		exit()
+	} else if comando == 1 {
+		startMonitoring()
+	} else if comando == 2 {
+		showLogs()
+	} else {
+		unknownOption()
+	}
+*/
+
+/*
+	ARRAYS EM GO POSSUEM TAMANHO PRÉ-FIXADO, O QUE TORNA O TRABALHO COM ARRAYS, RUIM
+	var sites [4]string
+	sites[0] = "https://www.google.com.br"
+	sites[1] = "https://www.alura.com.br"
+	sites[2] = "https://httpbin.org/status/200"
+	sites[3] = "https://httpbin.org/status/404"
+
+
+	NO CASO, A VANTAGEM É UTILIZAR UM SLICE, QUE É MUTÁVEL E PERMITE CRESCER E REDUZIR O TAMANHO DA ESTRUTURA DE DADOS
+	sites [] string {"https://www.google.com.br", "https://www.alura.com.br", "https://httpbin.org/status/200", "https://httpbin.org/status/404"}
+*/
+
+/*
+NO GO HÁ DUAS FORMAS D ITERAR SOBRE UMA LISTA
+
+#1 FOR TRADICIONAL COM USO DE ÍNDICE:
+
+	for index := 0; index < len(sites); index++ {
+		url := sites[index]
+		fmt.Print("Verificando site: ", url)
+		response, _ := http.Get(url)
+		if response.StatusCode == 200 {
+			fmt.Println(" - ", response.StatusCode, " [Disponível]")
+		} else {
+			fmt.Println(" - ", response.StatusCode, " [Indisponível]")
+		}
+	}
+
+#2 FOR ONDE A ITERAÇÃO É SOBRE OS ITENS DA LISTA
+
+	for index, element := range sites {
+		url := element
+		fmt.Print("Verificando site: ", url)
+		response, _ := http.Get(url)
+		if response.StatusCode == 200 {
+			fmt.Println(" - ", response.StatusCode, " [Disponível]")
+		} else {
+			fmt.Println(" - ", response.StatusCode, " [Indisponível]")
+		}
+	}
+*/
+
+/*
+A CRIAÇÃO DE CONSTANTES NO GO É FEITA USANDO A PALAVRA CHAVE CONST
+const monitoramentos = 3
 */
 func main() {
 	nome := receiveUserName()
@@ -84,23 +151,6 @@ func receiveOption() int {
 
 func executeOption(nome string, comando int) {
 	fmt.Println("A opção selecionada pelo usuário", nome, "foi a opção", comando)
-	/*
-		NO GO, OS PARÊNTESES DO IF NÃO SÃO NECESSÁRIOS:
-		if (comando == 0) {
-			...
-		}
-
-		COM A INSTRUÇÃO ACIMA, O GO VAI REMOVER OS PARÊNTESES
-		if comando == 0 {
-			exit()
-		} else if comando == 1 {
-			startMonitoring()
-		} else if comando == 2 {
-			showLogs()
-		} else {
-			unknownOption()
-		}
-	*/
 
 	switch comando {
 	case 0:
@@ -120,16 +170,16 @@ func exit() {
 }
 
 func startMonitoring() {
-	/*
-		ARRAYS EM GO POSSUEM TAMANHO PRÉ-FIXADO, O QUE TORNA O TRABALHO COM ARRAYS, RUIM
-		var sites [4]string
-		sites[0] = "https://www.google.com.br"
-		sites[1] = "https://www.alura.com.br"
-		sites[2] = "https://httpbin.org/status/200"
-		sites[3] = "https://httpbin.org/status/404"
-	*/
+	var times int
+	fmt.Print("Informe o número de vezes que deseja realizar o monitoramento: ")
+	fmt.Scan(&times)
 
-	//NO CASO, A VANTAGEM É UTILIZAR UM SLICE, QUE É MUTÁVEL E PERMITE CRESCER E REDUZIR O TAMANHO DA ESTRUTURA DE DADOS
+	var interval int
+	fmt.Print("Informe o intervalo entre monitoramentos (em segundos): ")
+	fmt.Scan(&interval)
+
+	fmt.Println("Você escolheu monitorar por", times, "vezes à cada", interval, "segundos")
+
 	sites := []string{
 		"https://www.google.com.br",
 		"https://www.alura.com.br",
@@ -138,15 +188,22 @@ func startMonitoring() {
 	}
 
 	fmt.Println("Iniciando monitoramento do sistema...")
+	for index := 0; index < times; index++ {
+		for index, element := range sites {
+			url := element
+			testConnection(index, url)
+		}
+		time.Sleep(time.Duration(interval) * time.Second)
+	}
+}
 
-	url := "https://httpbin.org/status/200"
-
-	fmt.Print("Verificando site: ", url)
+func testConnection(index int, url string) {
+	fmt.Print("Verificando site ", index, ": ", url)
 	response, _ := http.Get(url)
 	if response.StatusCode == 200 {
-		fmt.Println(" - ", response.StatusCode, " [Disponível]")
+		fmt.Println(" -", response.StatusCode, "[Disponível]")
 	} else {
-		fmt.Println(" - ", response.StatusCode, " [Indisponível]")
+		fmt.Println(" -", response.StatusCode, "[Indisponível]")
 	}
 }
 

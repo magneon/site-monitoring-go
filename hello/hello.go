@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 )
 
@@ -28,9 +29,11 @@ func main() {
 	idade := receiveUserAge()
 
 	showWelcome(nome, idade)
-	showOptions()
-	comando := receiveOption()
-	executeOption(nome, comando)
+	for {
+		showOptions()
+		comando := receiveOption()
+		executeOption(nome, comando)
+	}
 }
 
 func receiveUserName() string {
@@ -118,6 +121,16 @@ func exit() {
 
 func startMonitoring() {
 	fmt.Println("Iniciando monitoramento do sistema...")
+
+	url := "https://httpbin.org/status/200"
+
+	fmt.Print("Verificando site: ", url)
+	response, _ := http.Get(url)
+	if response.StatusCode == 200 {
+		fmt.Println(" - ", response.StatusCode, " [Disponível]")
+	} else {
+		fmt.Println(" - ", response.StatusCode, " [Indisponível]")
+	}
 }
 
 func showLogs() {

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -156,7 +158,7 @@ func executeOption(nome string, comando int) {
 	case 0:
 		exit()
 	case 1:
-		startMonitoring()
+		startMonitoring(getContentToBeMonitored())
 	case 2:
 		showLogs()
 	default:
@@ -169,7 +171,7 @@ func exit() {
 	os.Exit(0)
 }
 
-func startMonitoring() {
+func startMonitoring(sites []string) {
 	var times int
 	fmt.Print("Informe o número de vezes que deseja realizar o monitoramento: ")
 	fmt.Scan(&times)
@@ -180,12 +182,14 @@ func startMonitoring() {
 
 	fmt.Println("Você escolheu monitorar por", times, "vezes à cada", interval, "segundos")
 
-	sites := []string{
-		"https://www.google.com.br",
-		"https://www.alura.com.br",
-		"https://httpbin.org/status/200",
-		"https://httpbin.org/status/404",
-	}
+	/*
+		sites := []string{
+			"https://www.google.com.br",
+			"https://www.alura.com.br",
+			"https://httpbin.org/status/200",
+			"https://httpbin.org/status/404",
+		}
+	*/
 
 	fmt.Println("Iniciando monitoramento do sistema...")
 	for index := 0; index < times; index++ {
@@ -194,17 +198,50 @@ func startMonitoring() {
 			testConnection(index, url)
 		}
 		time.Sleep(time.Duration(interval) * time.Second)
+		fmt.Println()
 	}
+}
+
+func getContentToBeMonitored() []string {
+	fmt.Println("Obtendo arquivo de sites")
+	sites := []string{}
+
+	/* Utilizar a função os.Open basicamente é para identificarmos se um determinado arquivo/diretório existe. Essa função não retorna o conteúdo, apenas o ponteiro */
+	/* Utilizar a função os.ReadFile é interessante para ler e imprimir o conteúdo do arquivo completamente, sem tratativas */
+	arquivo, erro := os.Open("sites.txt")
+	linha := bufio.NewReader(arquivo)
+	if erro != nil {
+		fmt.Println("Ocorreu um erro ao abrir o arquivo", erro)
+	}
+
+	for {
+		conteudo, _, erro := linha.ReadLine()
+		if erro == io.EOF {
+			break
+		} else if erro != nil {
+			fmt.Println("Ocorreu um erro ao ler o conteúdo da linha", erro)
+		}
+
+		sites = append(sites, string(conteudo))
+	}
+
+	arquivo.Close()
+	return sites
 }
 
 func testConnection(index int, url string) {
 	fmt.Print("Verificando site ", index, ": ", url)
-	response, _ := http.Get(url)
-	if response.StatusCode == 200 {
-		fmt.Println(" -", response.StatusCode, "[Disponível]")
+	resposta, erro := http.Get(url)
+	if erro != nil {
+		fmt.Println("Falha ao conectar ao site", url, ", erro", erro)
 	} else {
-		fmt.Println(" -", response.StatusCode, "[Indisponível]")
+		if resposta.StatusCode == 200 {
+			fmt.Println(" -", resposta.StatusCode, "[Disponível]")
+		} else {
+			fmt.Println(" -", resposta.StatusCode, "[Indisponível]")
+		}
 	}
+
 }
 
 func showLogs() {

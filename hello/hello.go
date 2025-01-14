@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -191,14 +192,14 @@ func startMonitoring(sites []string) {
 		}
 	*/
 
-	fmt.Println("Iniciando monitoramento do sistema...")
+	appendInfoToLog("Iniciando monitoramento do sistema... \n")
 	for index := 0; index < times; index++ {
 		for index, element := range sites {
 			url := element
 			testConnection(index, url)
 		}
 		time.Sleep(time.Duration(interval) * time.Second)
-		fmt.Println()
+		appendInfoToLog("\n")
 	}
 }
 
@@ -230,22 +231,47 @@ func getContentToBeMonitored() []string {
 }
 
 func testConnection(index int, url string) {
-	fmt.Print("Verificando site ", index, ": ", url)
+	log := "Verificando site " + strconv.Itoa(index) + ": " + url
 	resposta, erro := http.Get(url)
 	if erro != nil {
-		fmt.Println("Falha ao conectar ao site", url, ", erro", erro)
+		log += "Falha ao conectar ao site" + url + erro.Error()
 	} else {
 		if resposta.StatusCode == 200 {
-			fmt.Println(" -", resposta.StatusCode, "[Disponível]")
+			log += " - " + strconv.Itoa(resposta.StatusCode) + " [Disponível] \n"
 		} else {
-			fmt.Println(" -", resposta.StatusCode, "[Indisponível]")
+			log += " - " + strconv.Itoa(resposta.StatusCode) + " [Indisponível] \n"
 		}
 	}
+	appendInfoToLog(log)
+}
 
+func appendInfoToLog(conteudo string) {
+	arquivo, erro := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 666)
+	if erro != nil {
+		fmt.Println("Ocorreu um erro ao abrir o arquivo de log", erro)
+	}
+
+	if conteudo != "\n" {
+		agora := time.Now()
+		arquivo.WriteString(agora.Format("02/01/2006 15:04:05") + " - " + conteudo)
+	} else {
+		arquivo.WriteString(conteudo)
+	}
+	arquivo.Close()
 }
 
 func showLogs() {
 	fmt.Println("Abrindo logs do sistema...")
+	openLogFile()
+}
+
+func openLogFile() {
+	arquivo, erro := os.ReadFile("logs.txt")
+	if erro != nil {
+		fmt.Println("Ocorreu um erro ao ler o arquivo de logs", erro)
+	}
+
+	fmt.Println(string(arquivo))
 }
 
 func unknownOption() {
